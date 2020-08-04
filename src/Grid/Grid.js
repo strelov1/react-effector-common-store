@@ -1,36 +1,16 @@
 import React from 'react';
 
-import { $dataStore, $changedData, $idx, $loading } from './effector/store'
-import { getData } from './effector/effect'
-import { save, changeCell, reset } from './effector/events';
 import { Table } from './Table';
+import { GridContext } from './context';
+import { createScope } from './effector';
 
-export const Grid = () => {
-    $dataStore
-        .on(getData.done, (oldState, payload) => {
-            return new Map(payload.result.map(item => [item.id, item]));;
-        });
+export const Grid = React.memo(({name, dataProvider, columns}) => {
+    
+    const scope = createScope(name, dataProvider, columns);
 
-    $changedData
-        .on(changeCell, (oldState, payload) => {
-            return {...oldState, [payload.key]: payload}
-        })
-        .on(save, async (oldState, payload) => {
-            await console.log(oldState);
-            await reset();
-        })
-        .reset(reset);
-
-    $dataStore.watch(console.log);
-
-    $idx.on(getData.done, (oldState, payload) => {
-        return payload.result.map(item => item.id);
-    });
-
-    $loading.on(getData.pending, (oldState, payload) => {
-        return payload;
-    })
-
-    return <Table $loading={$loading} $idx={$idx}></Table>
-
-}
+    return (
+        <GridContext.Provider value={scope}>
+            <Table/>
+        </GridContext.Provider>
+    );
+});

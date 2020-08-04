@@ -1,17 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useStore } from 'effector-react'
 
-import { reset, save } from './effector/events';
-import { getData } from './effector/effect';
 import { Cell } from './Cell';
+import { GridContext } from './context';
 
 
-export const Table = React.memo(({$idx, $loading}) => {
-    const idx = useStore($idx);
-    const loading = useStore($loading);
+const TableDump = () => {
+    const { store, events, effects } = useContext(GridContext);
+
+    const idx = useStore(store.$idx);
+    const loading = useStore(store.$loading);
 
     useEffect(() => {
-        getData();
+        effects.getData();
     }, []);
 
     if (loading) {
@@ -21,8 +22,8 @@ export const Table = React.memo(({$idx, $loading}) => {
     return (
         <div>
             <div>
-                <button onClick={() => reset()}>reset</button>
-                <button onClick={() => save()}>save</button>
+                <button onClick={() => events.reset()}>reset</button>
+                <button onClick={() => events.save()}>save</button>
             </div>
             <table>
             <thead>
@@ -34,18 +35,18 @@ export const Table = React.memo(({$idx, $loading}) => {
                 </tr>
             </thead>
             <tbody>
-                {idx.map(rowKey => {
-                    return (
-                        <tr key={rowKey}>
-                            <Cell rowKey={rowKey} column='id'></Cell>
-                            <Cell rowKey={rowKey} column='userId'></Cell>
-                            <Cell rowKey={rowKey} column='title'></Cell>
-                            <Cell rowKey={rowKey} column='body'></Cell>
-                        </tr>
-                    );
-                })}
+                {idx.map(rowKey => 
+                    <tr key={rowKey}>
+                        {store.columns.map(column => (
+                            <Cell rowKey={rowKey} column={column}></Cell>
+                        ))}
+                    </tr>
+                )}
             </tbody>
         </table>
         </div>
     )
-});
+};
+
+
+export const Table = React.memo(TableDump);
